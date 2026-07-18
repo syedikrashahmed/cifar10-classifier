@@ -4,10 +4,8 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 
 def get_dataloaders(batch_size=64):
-    # Convert images to PyTorch tensors
     transform = transforms.ToTensor()
 
-    # Download/load the training dataset
     train_dataset = datasets.CIFAR10(
         root="./data",
         train=True,
@@ -15,7 +13,6 @@ def get_dataloaders(batch_size=64):
         transform=transform
     )
 
-    # Download/load the testing dataset
     test_dataset = datasets.CIFAR10(
         root="./data",
         train=False,
@@ -23,7 +20,6 @@ def get_dataloaders(batch_size=64):
         transform=transform
     )
 
-    # Create DataLoaders
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,

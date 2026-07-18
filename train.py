@@ -52,4 +52,10 @@ for epoch in range(num_epochs):
         f"Epoch [{epoch+1}/{num_epochs}] "
         f"Loss: {running_loss/len(train_loader):.4f} "
         f"Accuracy: {accuracy:.2f}%"
-    )    
+    )  
+
+torch.save(
+    model.state_dict(),
+    "saved_models/mlp.pth"
+)  
+print("Model saved to saved_models/mlp.pth")
