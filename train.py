@@ -17,24 +17,23 @@ optimizer = optim.Adam(
 )
 print(model)
 
-num_epochs = 1
+best_accuracy = 0.0
+num_epochs = 10
 for epoch in range(num_epochs):
+    model.train()
+
     running_loss = 0.0
-    correct = 0
-    total = 0
+    train_correct = 0
+    train_total = 0
 
     for images, labels in train_loader:
-        # print(images.shape)
-        # print(labels.shape)
         images = images.to(device)
         labels = labels.to(device)
 
         optimizer.zero_grad()
         outputs = model(images)
-        # print(outputs.shape)
 
         loss = criterion(outputs, labels)
-        # print(loss)
 
         loss.backward()
         optimizer.step()
@@ -42,20 +41,43 @@ for epoch in range(num_epochs):
         running_loss += loss.item()
 
         _, predicted = torch.max(outputs, dim=1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
+        train_total += labels.size(0)
+        train_correct += (predicted == labels).sum().item()
     
-    epoch_loss = running_loss / len(train_loader)
-    accuracy = 100 * correct / total
+    train_loss = running_loss / len(train_loader)
+    train_accuracy = 100 * train_correct / train_total
+
+    #evaluate
+    model.eval()
+
+    test_correct = 0
+    test_total = 0
+    with torch.no_grad():
+        for images, labels in test_loader:
+            images = images.to(device)
+            labels = labels.to(device)
+
+            outputs = model(images)
+
+            _, predicted = torch.max(outputs, dim=1)
+            test_total += labels.size(0)
+            test_correct += (predicted == labels).sum().item()
+    
+    test_accuracy = 100 * test_correct / test_total
+
+    if test_accuracy > best_accuracy:
+        best_accuracy = test_accuracy
+        torch.save(
+            model.state_dict(),
+            "saved_models/mlp.pth"
+        ) 
+        print("Model saved to saved_models/mlp.pth")
 
     print(
         f"Epoch [{epoch+1}/{num_epochs}] "
-        f"Loss: {running_loss/len(train_loader):.4f} "
-        f"Accuracy: {accuracy:.2f}%"
+        f"Train Loss: {train_loss:.4f} "
+        f"Train Acc: {train_accuracy:.2f}% "
+        f"Test Acc: {test_accuracy:.2f}%"
     )  
 
-torch.save(
-    model.state_dict(),
-    "saved_models/mlp.pth"
-)  
-print("Model saved to saved_models/mlp.pth")
+print(f"Best Test Accuracy: {best_accuracy:.2f}%")
