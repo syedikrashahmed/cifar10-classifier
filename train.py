@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+# from models.cnn import CNN
 from models.mlp import MLP
 from utils import get_dataloaders
 
@@ -9,6 +10,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
 train_loader, test_loader = get_dataloaders(batch_size=64)
+# model = CNN().to(device)
 model = MLP().to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(
