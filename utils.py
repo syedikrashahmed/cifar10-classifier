@@ -4,20 +4,28 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 
 def get_dataloaders(batch_size=64):
-    transform = transforms.ToTensor()
+    train_transform = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+    ])
+
+    test_transform = transforms.Compose([
+        transforms.ToTensor(),
+    ])
 
     train_dataset = datasets.CIFAR10(
         root="./data",
         train=True,
         download=True,
-        transform=transform
+        transform=train_transform
     )
 
     test_dataset = datasets.CIFAR10(
         root="./data",
         train=False,
         download=True,
-        transform=transform
+        transform=test_transform
     )
 
     train_loader = DataLoader(
