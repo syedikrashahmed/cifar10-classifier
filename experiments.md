@@ -7,6 +7,7 @@
 | 3 | CNN + Data Augmentation | 75.30% | Best so far, improved generalization |
 | 4 | CNN + Data Augmentation + Dropout | 71.97% | Introduced excessive regularization, making learning more difficult |
 | 5 | CNN + Data Augmentation + Weight Decay | 72.45% | Slight improvement over Dropout, but below the best model |
+| 6 | CNN + Data Augmentation + Batch Normalization | 74.08% | Improved stability and generalization, second-best |
 
 # Experiment 1 — MLP Baseline
 
@@ -175,3 +176,43 @@ The CNN architecture and data augmentation pipeline remained unchanged.
 
 ## Conclusion
 Adding Weight Decay improved optimization and slightly increased both training and test accuracy compared with the Dropout experiment. However, it did not outperform the CNN trained with data augmentation alone. This suggests that, for this architecture and dataset, data augmentation provided the most effective regularization, while Weight Decay offered only a modest additional benefit.
+
+---
+
+# Experiment 6 — CNN + Batch Normalization
+
+## Model
+CNN + Data Augmentation + Batch Normalization
+
+## Structure
+CNN ( <br>
+  &emsp; (conv1): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)) <br>
+  &emsp; (bn1): BatchNorm2d(32) <br>
+  &emsp; (relu): ReLU() <br>
+  &emsp; (pool): MaxPool2d(kernel_size=2, stride=2) <br>
+  &emsp; (conv2): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)) <br>
+  &emsp; (bn2): BatchNorm2d(64) <br>
+  &emsp; (flatten): Flatten(start_dim=1, end_dim=-1) <br>
+  &emsp; (fc1): Linear(in_features=4096, out_features=512, bias=True) <br>
+  &emsp; (fc2): Linear(in_features=512, out_features=10, bias=True) <br>
+)
+
+## Changes
+Added Batch Normalization after each convolution layer.
+
+Data augmentation and all training hyperparameters remained unchanged.
+
+## Results
+- Loss: 0.8119
+- Train Accuracy: 71.44%
+- Test Accuracy: 74.08%
+
+## Observations
+- Training loss decreased smoothly, indicating stable optimization.
+- Training and test accuracy improved consistently throughout training.
+- Test accuracy increased compared with the Weight Decay experiment.
+- The confusion matrix showed strong performance on vehicle classes, while most remaining errors occurred between visually similar animal classes.
+- Although Batch Normalization improved convergence and generalization, it did not outperform the CNN trained with data augmentation alone.
+
+## Conclusion
+Adding Batch Normalization improved training stability and produced better generalization than the Weight Decay experiment. However, the test accuracy remained below the best-performing model using data augmentation alone. Batch Normalization proved to be an effective architectural improvement, but for this CNN, data augmentation continued to provide the largest overall performance gain.

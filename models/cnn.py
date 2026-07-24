@@ -11,6 +11,8 @@ class CNN(nn.Module):
             padding=1
         )
 
+        self.bn1 = nn.BatchNorm2d(32)
+
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool2d(
             kernel_size=2, 
@@ -24,17 +26,21 @@ class CNN(nn.Module):
             padding=1
         )
 
+        self.bn2 = nn.BatchNorm2d(64)
+
         self.flatten = nn.Flatten()
         self.fc1 = nn.Linear(64 * 8 * 8, 512)
         self.fc2 = nn.Linear(512, 10)
 
     def forward(self, x): # initial shape of x: Batch × 3 × 32 × 32
         x = self.conv1(x) # Batch × 32 × 32 × 32
+        x = self.bn1(x)
         x = self.relu(x)
         
         x = self.pool(x) # Batch × 32 × 16 × 16
 
         x = self.conv2(x) # Batch × 64 × 16 × 16
+        x = self.bn2(x)
         x = self.relu(x)
 
         x = self.pool(x) # Batch × 64 × 8 × 8
