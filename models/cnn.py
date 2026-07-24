@@ -26,6 +26,7 @@ class CNN(nn.Module):
 
         self.flatten = nn.Flatten()
         self.fc1 = nn.Linear(64 * 8 * 8, 512)
+        self.dropout = nn.Dropout(p=0.5)
         self.fc2 = nn.Linear(512, 10)
 
     def forward(self, x): # initial shape of x: Batch × 3 × 32 × 32
@@ -43,6 +44,7 @@ class CNN(nn.Module):
 
         x = self.fc1(x) # Batch × 512
         x = self.relu(x)
+        x = self.dropout(x)
 
         x = self.fc2(x) # Batch × 10
         return x

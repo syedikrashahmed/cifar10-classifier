@@ -5,6 +5,7 @@
 | 1 | MLP Baseline | 49.57% | Baseline model |
 | 2 | CNN Baseline | 69.61% | Better features, some overfitting |
 | 3 | CNN + Data Augmentation | 75.30% | Best so far, improved generalization |
+| 4 | CNN + Data Augmentation + Dropout | 71.97% | Introduced excessive regularization, making learning more difficult |
 
 # Experiment 1 — MLP Baseline
 
@@ -103,3 +104,43 @@ No changes were made to the CNN architecture, optimizer, learning rate, batch si
 
 ## Conclusion
 Data augmentation significantly improves generalization without changing the model architecture. Although training becomes more difficult, the model learns more robust visual features and achieves the best test accuracy so far while greatly reducing overfitting.
+
+---
+
+# Experiment 4 — CNN + Dropout
+
+## Model
+CNN + Data Augmentation + Dropout
+
+## Structure
+CNN ( <br>
+  &emsp; (conv1): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)) <br>
+  &emsp; (relu): ReLU() <br>
+  &emsp; (pool): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False) <br>
+  &emsp; (conv2): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)) <br>
+  &emsp; (flatten): Flatten(start_dim=1, end_dim=-1) <br>
+  &emsp; (fc1): Linear(in_features=4096, out_features=512, bias=True) <br>
+  &emsp; (dropout): Dropout(p=0.5, inplace=False) <br>
+  &emsp; (fc2): Linear(in_features=512, out_features=10, bias=True) <br>
+)
+
+## Changes
+Added a Dropout Layer (p=0.5) after the first fully connected layer.
+
+No other changes were made.
+
+## Results
+- Loss: 0.9583
+- Train Accuracy: 66.53%
+- Test Accuracy: 71.97%
+
+## Observations
+- Training loss decreased steadily but converged to a higher final loss than the previous experiment.
+- Training and test accuracy increased consistently throughout training, indicating stable learning.
+- No signs of overfitting were observed, as the training and test accuracy remained close.
+- Test accuracy decreased compared to the previous experiment (75.30% → 71.97%).
+- The confusion matrix remained largely diagonal, with most errors occurring between visually similar animal classes such as birds, cats, dogs, and deer.
+- Vehicle classes continued to be classified accurately with relatively few mistakes.
+
+## Conclusion
+Adding Dropout(0.5) increased regularization but reduced overall performance. Although the model continued to generalize well and avoided overfitting, both training and test accuracy decreased compared to the previous experiment. For this relatively small CNN, the combination of data augmentation and Dropout(0.5) introduced excessive regularization, making learning more difficult without improving generalization. Data augmentation alone remained the better-performing approach.
