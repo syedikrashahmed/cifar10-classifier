@@ -6,6 +6,7 @@
 | 2 | CNN Baseline | 69.61% | Better features, some overfitting |
 | 3 | CNN + Data Augmentation | 75.30% | Best so far, improved generalization |
 | 4 | CNN + Data Augmentation + Dropout | 71.97% | Introduced excessive regularization, making learning more difficult |
+| 5 | CNN + Data Augmentation + Weight Decay | 72.45% | Slight improvement over Dropout, but below the best model |
 
 # Experiment 1 — MLP Baseline
 
@@ -144,3 +145,33 @@ No other changes were made.
 
 ## Conclusion
 Adding Dropout(0.5) increased regularization but reduced overall performance. Although the model continued to generalize well and avoided overfitting, both training and test accuracy decreased compared to the previous experiment. For this relatively small CNN, the combination of data augmentation and Dropout(0.5) introduced excessive regularization, making learning more difficult without improving generalization. Data augmentation alone remained the better-performing approach.
+
+---
+
+# Experiment 5 — CNN + Weight Decay
+
+## Model
+CNN + Data Augmentation + Weight Decay
+
+## Structure
+same as CNN Baseline (Experiment 2)
+
+## Changes
+Added Weight Decay (L2 Regularization) to the Adam optimizer using: weight_decay = 1e-4
+
+The CNN architecture and data augmentation pipeline remained unchanged.
+
+## Results
+- Loss: 0.8198
+- Train Accuracy: 71.17%
+- Test Accuracy: 72.45%
+
+## Observations
+- Training loss decreased smoothly and converged to a lower value than the previous Dropout experiment.
+- Training and test accuracy improved compared to the Dropout model.
+- The train–test accuracy gap remained small, indicating good generalization.
+- Confusion matrix continued to show strong performance on vehicle classes, while most remaining errors occurred between visually similar animal classes.
+- Despite improved optimization, test accuracy remained below the best-performing CNN with data augmentation alone.
+
+## Conclusion
+Adding Weight Decay improved optimization and slightly increased both training and test accuracy compared with the Dropout experiment. However, it did not outperform the CNN trained with data augmentation alone. This suggests that, for this architecture and dataset, data augmentation provided the most effective regularization, while Weight Decay offered only a modest additional benefit.
