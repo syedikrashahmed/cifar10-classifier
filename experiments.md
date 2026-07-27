@@ -1,14 +1,3 @@
-# Experiment Summary
-
-| # | Experiment | Test Accuracy | Notes |
-|---|------------|--------------:|------|
-| 1 | MLP Baseline | 49.57% | Baseline model |
-| 2 | CNN Baseline | 69.61% | Better features, some overfitting |
-| 3 | CNN + Data Augmentation | 75.30% | Best so far, improved generalization |
-| 4 | CNN + Data Augmentation + Dropout | 71.97% | Introduced excessive regularization, making learning more difficult |
-| 5 | CNN + Data Augmentation + Weight Decay | 72.45% | Slight improvement over Dropout, but below the best model |
-| 6 | CNN + Data Augmentation + Batch Normalization | 74.08% | Improved stability and generalization, second-best |
-
 # Experiment 1 — MLP Baseline
 
 ## Model
@@ -216,3 +205,250 @@ Data augmentation and all training hyperparameters remained unchanged.
 
 ## Conclusion
 Adding Batch Normalization improved training stability and produced better generalization than the Weight Decay experiment. However, the test accuracy remained below the best-performing model using data augmentation alone. Batch Normalization proved to be an effective architectural improvement, but for this CNN, data augmentation continued to provide the largest overall performance gain.
+
+---
+
+# Experiment 7 — Hyperparameter Tuning (Learning Rate)
+
+| Learning Rate | Train Loss | Train Acc | Test Acc | Verdict |
+| ------------: | ---------: | ---------: | ------: | ------- |
+| 0.0001| 0.8650 | 69.58% | 71.06% | Stable but slow |
+| 0.001 | 0.8846 | 68.83% | 71.89% | Best balance |
+| 0.01 | 1.2644 | 52.53% | 55.82% | Too high|
+
+---
+
+# Experiment 7A — Learning Rate (0.0001)
+
+## Model
+CNN + Data Augmentation + Batch Normalization
+
+## Structure
+same as CNN + Batch Normalization (Experiment 6) 
+
+## Changes
+Reduced the learning rate to 0.0001.
+
+All other training settings remained unchanged.
+
+## Results
+- Loss: 0.8650
+- Train Accuracy: 69.58%
+- Test Accuracy: 71.06%
+- Best Test Accuracy: 72.16% (Epoch 9)
+
+## Observations
+- Training loss decreased smoothly, indicating stable optimization.
+- Training accuracy improved slightly compared to the baseline.
+- The highest test accuracy occurred at Epoch 9 before decreasing slightly.
+- The lower learning rate produced smoother convergence but slower learning.
+
+## Conclusion
+Reducing the learning rate to 0.0001 improved optimization stability and achieved a slightly higher peak test accuracy. However, because learning was slower, the final epoch accuracy remained below the baseline. This learning rate may perform better if combined with additional training epochs or early stopping.
+
+---
+
+# Experiment 7B — Learning Rate (0.01)
+
+## Model
+CNN + Data Augmentation + Batch Normalization
+
+## Structure
+same as CNN + Batch Normalization (Experiment 6) 
+
+## Changes
+Increased the learning rate to 0.01.
+
+All other training settings remained unchanged.
+
+## Results
+- Loss: 1.2644
+- Train Accuracy: 52.53%
+- Test Accuracy: 55.82%
+
+## Observations
+- Training loss remained much higher than the baseline.
+- Both training and test accuracy were significantly lower.
+- The model learned throughout training but converged to a poor solution.
+- The confusion matrix showed increased misclassification, particularly among visually similar classes.
+- The high learning rate caused unstable optimization and prevented the network from learning effective feature representations.
+
+## Conclusion
+Increasing the learning rate to 0.01 significantly reduced the model's performance. The optimizer took excessively large parameter updates, leading to poor convergence and lower training and test accuracy. For this CNN architecture, a learning rate of 0.01 is too large and is not recommended.
+
+---
+
+## Conclusion of Experiment 7
+- 0.0001: Stable but requires longer training or early stopping.
+- 0.001: Best overall balance for your setup.
+- 0.01: Too aggressive and leads to underfitting.
+
+---
+
+# Experiment 8 — Hyperparameter Tuning (Optimizer) 
+| Optimizer | Train Acc | Test Acc |
+| ------------: | ---------: | ---------: | 
+| Adam| 69.58% | 71.89% | 
+| SGD | 69.83% | 70.26% |  
+
+---
+
+# Experiment 8A — Optimizer (SGD + Momentum)
+
+## Model
+CNN + Data Augmentation + Batch Normalization
+
+## Changes
+Replaced the Adam optimizer with SGD using momentum (0.9).
+
+All other training settings remained unchanged.
+
+## Results
+- Loss: 0.8617
+- Train Accuracy: 69.83%
+- Test Accuracy: 70.26%
+
+## Observations
+- Training loss decreased smoothly throughout training.
+- Training accuracy was slightly higher than with Adam.
+- Test accuracy decreased by approximately 1.6% compared with the Adam baseline.
+- The train-test accuracy gap remained very small, indicating good generalization.
+- SGD required more gradual learning and showed larger fluctuations in test accuracy.
+
+## Conclusion
+Replacing Adam with SGD resulted in slightly better training performance but lower test accuracy. Although SGD optimized the training data more effectively, Adam produced better generalization within the 10-epoch training setup. Therefore, Adam remained the preferred optimizer for this project.
+
+---
+
+# Experiment 9 — Hyperparameter Tuning (Batch Size)
+| Batch Size | Train Loss | Train Accuracy | Test Accuracy | Assessment |
+| ------------: | -----------:|---------------:|--------------:|------------|
+| 32| 0.7986 | 72.00% | 73.86% | Best overall balance between optimization and generalization |
+| 64 | 0.8846 | 68.83% | 71.89% | Strong baseline performance |
+| 128 | 0.7834 | 72.40% | 71.57% | Best training performance but weaker generalization |
+
+---
+
+# Experiment 9A — Batch Size (32)
+
+## Model
+CNN + Data Augmentation + Batch Normalization
+
+## Structure
+Same architecture as Experiment 6.
+
+## Changes
+Reduced the batch size from 64 to 32.
+
+All other training settings remained unchanged.
+
+## Results
+- Loss: 0.7986
+- Train Accuracy: 72.00%
+- Test Accuracy: 73.86%
+
+## Observations
+- Achieved the lowest training loss among the batch size experiments.
+- Training accuracy increased compared to the baseline.
+- Test accuracy improved by nearly 2% over the baseline.
+- Training remained stable with smooth convergence.
+- The highest test accuracy was reached around Epoch 9, suggesting early stopping could further improve performance.
+- The small train-test accuracy gap indicates excellent generalization with no significant overfitting.
+
+## Conclusion
+Reducing the batch size to 32 significantly improved both optimization and generalization. More frequent weight updates allowed the model to learn more transferable feature representations, resulting in the highest test accuracy among all hyperparameter tuning experiments. For this CNN architecture, a batch size of 32 provides the best overall balance between learning efficiency and generalization.
+
+---
+
+# Experiment 9B — Batch Size (128)
+
+## Model
+CNN + Data Augmentation + Batch Normalization
+
+## Structure
+Same architecture as Experiment 6.
+
+## Changes
+Increased the batch size from 64 to 128.
+
+All other training settings remained unchanged.
+
+## Results
+- Loss: 0.7834
+- Train Accuracy: 72.40%
+- Test Accuracy: 71.57%
+
+## Observations
+- Achieved the lowest training loss and highest training accuracy among the batch size experiments.
+- Training converged smoothly with stable optimization.
+- Test accuracy was slightly lower than the baseline and noticeably lower than the batch size 32 experiment.
+- The train-test accuracy gap remained small, indicating good generalization.
+- Better optimization on the training data did not translate into improved performance on unseen images.
+
+## Conclusion
+Increasing the batch size to 128 improved optimization of the training data but slightly reduced generalization performance. Although the model achieved the lowest training loss and highest training accuracy, the lower test accuracy suggests that larger batches produced less transferable feature representations. Compared to the tested batch sizes, 128 was not the optimal choice for maximizing classification performance on CIFAR-10.
+
+---
+
+## Overall Conclusion
+
+Among the evaluated batch sizes, 32 produced the best overall performance. Although larger batches optimized the training data more effectively, the smaller batch size achieved the highest test accuracy, indicating better generalization. This suggests that more frequent parameter updates helped the model learn more robust feature representations for unseen data.
+
+---
+
+# Experiment 10 — Final Best Configuration (20 Epochs)
+
+## Model
+CNN + Data Augmentation + Batch Normalization
+
+## Structure
+Same architecture as Experiment 6.
+
+## Changes
+Used the best-performing hyperparameters identified during previous experiments:
+
+- Adam optimizer
+- Learning rate = 0.001
+- Batch size = 32
+- Increased training from 10 to 20 epochs
+
+All other settings remained unchanged.
+
+## Results
+- Loss: 0.6743
+- Train Accuracy: 76.65%
+- Test Accuracy: 77.38%
+
+## Observations
+- Achieved the lowest training loss across all experiments.
+- Achieved the highest training and test accuracy.
+- Training and test accuracy improved steadily throughout all 20 epochs.
+- No significant signs of overfitting were observed.
+- The confusion matrix showed stronger class separation, with most errors limited to visually similar animal classes.
+- Training for additional epochs allowed the network to continue learning meaningful feature representations rather than plateauing after 10 epochs.
+
+## Conclusion
+Training the best-performing CNN configuration for 20 epochs produced the strongest overall results. Extending the training duration significantly improved optimization and generalization, increasing the test accuracy from 71.89% in the baseline model to 77.38%. This experiment demonstrates that the original 10-epoch training schedule was insufficient for the network to fully converge, and that additional training yielded the largest performance improvement among all experiments.
+
+---
+
+# Overall Experimental Summary
+
+| Experiment | Modification | Test Accuracy | Outcome |
+|------------|--------------|--------------:|---------|
+| 1 | MLP Baseline | 49.57% | Established initial baseline |
+| 2 | CNN Baseline | 69.61% | Significant improvement over MLP but showed overfitting |
+| 3 | Data Augmentation | 71.89% | Improved generalization and reduced overfitting |
+| 4 | Dropout | 71.97% | Minimal improvement |
+| 5 | Weight Decay | 72.45% | Small improvement in generalization |
+| 6 | Batch Normalization | 74.08% | Largest architectural improvement |
+| 7A | Learning Rate = 0.0001 | 72.16% | Stable but slower convergence |
+| 7B | Learning Rate = 0.01 | 55.82% | Learning rate too high; poor optimization |
+| 8 | SGD + Momentum | 70.26% | Adam provided better generalization |
+| 9A | Batch Size = 32 | 73.86% | Best hyperparameter change |
+| 9B | Batch Size = 128 | 71.57% | Better optimization but weaker generalization |
+| 10 | Final Best Configuration (20 Epochs) | 77.38% | Best overall model |
+
+## Final Conclusions
+
+The experiments demonstrated that systematically modifying one component at a time provides valuable insight into CNN performance. Among the architectural changes, Batch Normalization produced the largest improvement, while Dropout had little effect on this relatively small network. Hyperparameter tuning showed that a learning rate of 0.001, the Adam optimizer, and a batch size of 32 provided the best balance between optimization and generalization. Finally, increasing the training duration from 10 to 20 epochs produced the highest overall performance, achieving 77.38% test accuracy without noticeable overfitting. These experiments illustrate the importance of controlled experimentation when improving deep learning models.
