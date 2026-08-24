@@ -22,7 +22,7 @@ feature extraction against fine-tuning.
 
 ## Notebook
 
-[`CIFAR10_Complete_Experiments.ipynb`](./CIFAR10_Complete_Experiments.ipynb), the complete writeup: dataset/preprocessing, all four experiments with architecture, configuration, results, master comparison, and analysis.
+[`CIFAR10_Complete_Experiments.ipynb`](https://github.com/syedikrashahmed/cifar10-classifier/blob/main/cifar10-complete-experiments.ipynb), the complete writeup: dataset/preprocessing, all four experiments with architecture, configuration, results, master comparison, and analysis.
 
 Earlier learning notebooks (tensors, dataloaders, MLP, CNN) are in `notebooks/`.
 
