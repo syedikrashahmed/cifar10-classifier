@@ -1,86 +1,86 @@
+import argparse
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import random
+import numpy as np
 
-# from models.cnn import CNN
 from models.mlp import MLP
+from models.cnn import CNN
+from models.resnet18 import ResNet18
 from utils import get_dataloaders
+from training.trainer import Trainer
+from configs.experiments import EXPERIMENTS
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Using device: {device}")
+def get_model(model_name):
+    if model_name == "mlp":
+        return MLP()
 
-train_loader, test_loader = get_dataloaders(batch_size=64)
-# model = CNN().to(device)
-model = MLP().to(device)
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(
-    model.parameters(),
-    lr=0.001,
-    weight_decay=1e-4
-)
-print(model)
+    if model_name == "cnn":
+        return CNN()
 
-best_accuracy = 0.0
-num_epochs = 10
-for epoch in range(num_epochs):
-    model.train()
+    if model_name == "resnet_feature":
+        return ResNet18(pretrained=True, feature_extract=True)
 
-    running_loss = 0.0
-    train_correct = 0
-    train_total = 0
-
-    for images, labels in train_loader:
-        images = images.to(device)
-        labels = labels.to(device)
-
-        optimizer.zero_grad()
-        outputs = model(images)
-
-        loss = criterion(outputs, labels)
-
-        loss.backward()
-        optimizer.step()
-
-        running_loss += loss.item()
-
-        _, predicted = torch.max(outputs, dim=1)
-        train_total += labels.size(0)
-        train_correct += (predicted == labels).sum().item()
+    if model_name == "resnet_finetune":
+        return ResNet18(pretrained=True, feature_extract=False)
     
-    train_loss = running_loss / len(train_loader)
-    train_accuracy = 100 * train_correct / train_total
+    raise ValueError(f"Unknown model: {model_name}")
 
-    #evaluate
-    model.eval()
+def set_seed(seed=42):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
-    test_correct = 0
-    test_total = 0
-    with torch.no_grad():
-        for images, labels in test_loader:
-            images = images.to(device)
-            labels = labels.to(device)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
-            outputs = model(images)
+def get_optimizer(model, config):
+    if config["optimizer"] == "adam":
+        return optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config["lr"], weight_decay=config["weight_decay"])
 
-            _, predicted = torch.max(outputs, dim=1)
-            test_total += labels.size(0)
-            test_correct += (predicted == labels).sum().item()
-    
-    test_accuracy = 100 * test_correct / test_total
+    if config["optimizer"] == "sgd":
+        return optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=config["lr"], momentum=0.9, weight_decay=config["weight_decay"])
 
-    if test_accuracy > best_accuracy:
-        best_accuracy = test_accuracy
-        torch.save(
-            model.state_dict(),
-            "saved_models/mlp.pth"
-        ) 
-        print("Model saved to saved_models/mlp.pth")
+    raise ValueError(f"Unknown optimizer: {config['optimizer']}")
 
-    print(
-        f"Epoch [{epoch+1}/{num_epochs}] "
-        f"Train Loss: {train_loss:.4f} "
-        f"Train Acc: {train_accuracy:.2f}% "
-        f"Test Acc: {test_accuracy:.2f}%"
-    )  
+def main(experiment_name):
 
-print(f"Best Test Accuracy: {best_accuracy:.2f}%")
+    if experiment_name not in EXPERIMENTS:
+        raise ValueError(f"Unknown experiment: {experiment_name}")
+
+    config = EXPERIMENTS[experiment_name]
+    set_seed(config["seed"])
+    print(f"Experiment: {experiment_name}")
+    print("\nConfiguration:")
+    for key, value in config.items():
+        print(f"{key}: {value}")
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"\nDevice: {device}")
+
+    train_loader, val_loader, test_loader = get_dataloaders(batch_size=config["batch_size"], model_type=config["model_type"], augment=config["augment"], seed=config["seed"])
+
+    model = get_model(config["model"])
+    model = model.to(device)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = get_optimizer(model, config)
+
+    os.makedirs("checkpoints", exist_ok=True)
+    checkpoint_path = (f"checkpoints/{experiment_name}.pth")
+
+    trainer = Trainer(model=model, criterion=criterion, optimizer=optimizer, device=device, checkpoint_path=checkpoint_path)
+    history = trainer.fit(train_loader, val_loader, epochs=config["epochs"], experiment_name=experiment_name, config=config)
+
+    print("\nExperiment complete.")
+    print(f"Best Validation Accuracy: {trainer.best_accuracy:.2f}%")
+    print(f"Checkpoint: {checkpoint_path}")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--experiment", type=str, required=True)
+    args = parser.parse_args()
+    main(args.experiment)

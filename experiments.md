@@ -431,6 +431,103 @@ All other settings remained unchanged.
 Training the best-performing CNN configuration for 20 epochs produced the strongest overall results. Extending the training duration significantly improved optimization and generalization, increasing the test accuracy from 71.89% in the baseline model to 77.38%. This experiment demonstrates that the original 10-epoch training schedule was insufficient for the network to fully converge, and that additional training yielded the largest performance improvement among all experiments.
 
 ---
+# Experiment 11: Transfer Learning (ResNet18)
+
+Transfer learning was introduced to compare a pretrained convolutional neural network against the custom CNN built from scratch. Instead of learning all visual features from random initialization, ResNet18 starts with weights pretrained on the ImageNet dataset.
+
+---
+
+## Experiment 11A: Feature Extraction
+
+### Objective
+
+Evaluate how a pretrained ResNet18 performs when only the final classification layer is trained.
+
+### Changes Made
+
+- Loaded a pretrained ResNet18 model.
+- Replaced the original fully connected layer:
+  - Original: `Linear(512, 1000)`
+  - New: `Linear(512, 10)`
+- Froze all pretrained layers.
+- Trained only the final classifier (`fc`).
+- Resized CIFAR-10 images from **32 × 32** to **224 × 224**.
+- Used ImageNet normalization values.
+- Learning Rate: **0.001**
+- Epochs: **5**
+
+### Model Statistics
+
+| Metric | Value |
+|---------|------:|
+| Total Parameters | 11,181,642 |
+| Trainable Parameters | 5,130 |
+
+### Results
+
+| Metric | Value |
+|---------|------:|
+| Train Accuracy | 80.25% |
+| Test Accuracy | **80.24%** |
+
+### Observations
+
+- Only the final classifier was updated during training.
+- The pretrained feature extractor significantly outperformed the custom CNN.
+- Training converged quickly despite updating less than 0.05% of the model parameters.
+- Performance plateaued after several epochs because the feature extractor remained frozen.
+
+### Conclusion
+
+Feature extraction demonstrated the effectiveness of transfer learning. By reusing features learned from ImageNet, the model achieved better performance than the custom CNN while training only the final classification layer.
+
+---
+
+## Experiment 11B: Partial Fine-Tuning
+
+### Objective
+
+Evaluate whether allowing the final residual block to learn CIFAR-10 specific features improves performance over feature extraction.
+
+### Changes Made
+
+- Unfroze **layer4** of ResNet18.
+- Continued training the final fully connected layer.
+- Kept all earlier layers frozen.
+- Reduced learning rate from **0.001** to **0.0001**.
+- Trained for **1 epoch**.
+
+### Results
+
+| Metric | Value |
+|---------|------:|
+| Train Accuracy | 85.67% |
+| Test Accuracy | **89.75%** |
+
+### Observations
+
+- Fine-tuning produced a substantial improvement over feature extraction.
+- Allowing the final residual block to adapt to CIFAR-10 resulted in much better high-level feature representations.
+- The model generalized well despite increasing the number of trainable parameters.
+- Even a single epoch of fine-tuning produced a large improvement in accuracy.
+
+### Conclusion
+
+Partial fine-tuning was the best-performing approach. Keeping the low-level ImageNet features while adapting only the highest-level features allowed the model to specialize for CIFAR-10 and achieve the highest test accuracy.
+
+---
+
+# Transfer Learning Summary
+
+| Model | Training Strategy | Test Accuracy |
+|--------|------------------|--------------:|
+| Custom CNN | Train from Scratch | 77.38% |
+| ResNet18 | Feature Extraction | 80.24% |
+| ResNet18 | Partial Fine-Tuning | **89.75%** |
+
+### Overall Conclusion
+
+Transfer learning significantly outperformed training a CNN from scratch. Feature extraction alone provided a noticeable improvement over the custom CNN, while partial fine-tuning of the final residual block achieved the best overall performance. This demonstrates that pretrained ImageNet features are highly transferable to CIFAR-10, and allowing higher-level layers to adapt to the new dataset results in substantial gains in classification accuracy while preserving the robust low-level features learned during pretraining.
 
 # Overall Experimental Summary
 
@@ -452,3 +549,4 @@ Training the best-performing CNN configuration for 20 epochs produced the strong
 ## Final Conclusions
 
 The experiments demonstrated that systematically modifying one component at a time provides valuable insight into CNN performance. Among the architectural changes, Batch Normalization produced the largest improvement, while Dropout had little effect on this relatively small network. Hyperparameter tuning showed that a learning rate of 0.001, the Adam optimizer, and a batch size of 32 provided the best balance between optimization and generalization. Finally, increasing the training duration from 10 to 20 epochs produced the highest overall performance, achieving 77.38% test accuracy without noticeable overfitting. These experiments illustrate the importance of controlled experimentation when improving deep learning models.
+
